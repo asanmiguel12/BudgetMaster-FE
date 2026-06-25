@@ -34,7 +34,6 @@ export default function CashStack({ percentRemaining, isAnimating }) {
     }
   }, [isAnimating]);
 
-  // Convert idleRock (-1 → 1) into rotation degrees
   const idleRotate = idleRock.interpolate({
     inputRange: [-1, 0, 1],
     outputRange: ['-4deg', '0deg', '4deg'],
@@ -42,7 +41,6 @@ export default function CashStack({ percentRemaining, isAnimating }) {
 
   return (
     <View style={styles.container}>
-      {/* Shadow */}
       <View style={[styles.shadow, { width: 260 }]} />
 
       {/* MAIN STACK */}
@@ -51,7 +49,6 @@ export default function CashStack({ percentRemaining, isAnimating }) {
           const tilt = (i % 2 === 0 ? 1 : -1) * (1 + Math.random() * 2);
           const scale = 0.85 + (percentRemaining / 100) * 0.15;
 
-          // FIX: apply idle rocking inside the same transform chain
           const animatedTransforms =
             i === billCount - 1 ? [{ rotateZ: idleRotate }] : [];
 
@@ -63,10 +60,10 @@ export default function CashStack({ percentRemaining, isAnimating }) {
                 {
                   bottom: i * 4,
                   transform: [
-                    { rotateX: '55deg' },   // keeps bill laying down
+                    { rotateX: '55deg' },
                     { rotateZ: `${tilt}deg` },
                     { scale },
-                    ...animatedTransforms,  // rocking applied LAST
+                    ...animatedTransforms,
                   ],
                   zIndex: i,
                 },
@@ -85,7 +82,7 @@ export default function CashStack({ percentRemaining, isAnimating }) {
         })}
       </View>
 
-      {/* FOUR MINI STACKS */}
+      {/* MINI STACKS */}
       <View style={styles.miniRow}>
         <MiniStack label="1" />
         <MiniStack label="5" />
@@ -120,22 +117,25 @@ function MiniStack({ label }) {
               {
                 bottom: i * 3.6,
                 transform: [
-                  { rotateX: '55deg' },
-                  { rotateZ: `${tilt}deg` },
+                  { rotateX: '0deg' },       // face forward
+                  { rotateZ: `${tilt}deg` }, // slight wobble
                   { scale: 0.9 },
                 ],
                 zIndex: i,
               },
             ]}
           >
+            {/* Horizontal band for tall bill */}
             <View style={miniStyles.band} />
 
+            {/* Denomination circle */}
             {i === miniBills - 1 && (
               <View style={miniStyles.denomCircle}>
                 <Text style={miniStyles.denomText}>{label}</Text>
               </View>
             )}
 
+            {/* Sparkle */}
             {i === miniBills - 1 && (
               <Text style={miniStyles.sparkle}>✦</Text>
             )}
@@ -154,14 +154,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
 
-  shadow: {
-    position: 'absolute',
-    bottom: 140,
-    height: 20,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-    borderRadius: 50,
-  },
-
   stackWrapper: {
     position: 'absolute',
     bottom: 160,
@@ -175,7 +167,7 @@ const styles = StyleSheet.create({
     width: 240,
     height: 110,
     backgroundColor: '#10b981',
-    borderRadius: 18,
+    borderRadius: 0,
     borderWidth: 4,
     borderColor: '#064e3b',
     justifyContent: 'center',
@@ -251,7 +243,7 @@ const styles = StyleSheet.create({
 /* MINI STACK STYLES */
 const miniStyles = StyleSheet.create({
   wrapper: {
-    width: 84,
+    width: 48,
     height: 108,
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -260,10 +252,10 @@ const miniStyles = StyleSheet.create({
 
   bill: {
     position: 'absolute',
-    width: 84,
-    height: 48,
+    width: 48,   // tall orientation
+    height: 84,  // long side vertical
     backgroundColor: '#10b981',
-    borderRadius: 12,
+    borderRadius: 0,
     borderWidth: 3,
     borderColor: '#064e3b',
     justifyContent: 'center',
@@ -272,13 +264,13 @@ const miniStyles = StyleSheet.create({
 
   band: {
     position: 'absolute',
-    width: 24,
-    height: '100%',
+    width: '100%',
+    height: 24, // horizontal band
     backgroundColor: '#fbbf24',
-    left: '50%',
-    transform: [{ translateX: -12 }],
-    borderLeftWidth: 3,
-    borderRightWidth: 3,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+    borderTopWidth: 3,
+    borderBottomWidth: 3,
     borderColor: 'rgba(0,0,0,0.1)',
   },
 
