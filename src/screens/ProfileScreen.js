@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBudget, formatTimeframe } from '../context/BudgetContext';
 
 export default function ProfileScreen() {
+  const { budget, timeframe } = useBudget();
+  const timeframeLabel = formatTimeframe(timeframe) || 'Monthly';
   const [notifications, setNotifications] = React.useState(true);
   const [bankSync, setBankSync] = React.useState(true);
   const [weeklyReport, setWeeklyReport] = React.useState(false);
@@ -33,8 +36,10 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.settingRow}>
               <Text style={styles.settingIcon}>💰</Text>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Monthly Budget</Text>
-                <Text style={styles.settingValue}>$2,500.00</Text>
+                <Text style={styles.settingLabel}>{timeframeLabel} Budget</Text>
+                <Text style={styles.settingValue}>
+                  ${budget.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </Text>
               </View>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>

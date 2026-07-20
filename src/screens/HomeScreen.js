@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CashStack from '../components/CashStack';
-import { useBudget } from '../context/BudgetContext';
+import { useBudget, formatTimeframe } from '../context/BudgetContext';
 
 function TransactionRow({ transaction }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -46,12 +46,13 @@ function TransactionRow({ transaction }) {
 
 export default function HomeScreen({ navigation }) {
   const {
-    budget, spent, remaining, percentRemaining,
+    budget, spent, remaining, percentRemaining, timeframe,
     transactions, pendingTransaction, isAnimating,
     simulateBankNotification,
   } = useBudget();
 
   const [showSummary, setShowSummary] = useState(false);
+  const timeframeLabel = formatTimeframe(timeframe);
 
   const cashRef = useRef(null);
 
@@ -98,7 +99,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>My Budget</Text>
+        <Text style={styles.headerTitle}>Budget Me</Text>
 
         <TouchableOpacity style={styles.bellBtn}>
           <Text style={styles.bellIcon}>🔔</Text>
@@ -113,9 +114,9 @@ export default function HomeScreen({ navigation }) {
             transform: [{ scale: summaryScale }],
             opacity: summaryOpacity,
           }]}>
-            <Text style={styles.summaryLabel}>Overall Budget</Text>
+            <Text style={styles.summaryLabel}>Remaining Budget</Text>
             <Text style={styles.summaryBudget}>
-              ${budget.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ${remaining.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </Text>
 
             <View style={styles.summaryRow}>
@@ -127,8 +128,8 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.summaryDivider} />
 
               <View style={styles.summaryStat}>
-                <Text style={styles.summaryStatLabel}>Remaining</Text>
-                <Text style={styles.summaryStatValue}>${remaining.toFixed(2)}</Text>
+                <Text style={styles.summaryStatLabel}>Overall Budget</Text>
+                <Text style={styles.summaryStatValue}>${budget.toFixed(2)}</Text>
               </View>
             </View>
           </Animated.View>
@@ -138,7 +139,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.budgetAmount}>
               ${budget.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </Text>
-            <Text style={styles.thisMonth}></Text>
+            <Text style={styles.thisMonth}>{timeframeLabel}</Text>
           </View>
         )}
 
@@ -151,11 +152,20 @@ export default function HomeScreen({ navigation }) {
 
         {/* Cash Stack */}
         <View style={styles.cashArea}>
-          <CashStack
-            onRef={(api) => (cashRef.current = api)}
-            percentRemaining={parseFloat(percentRemaining)}
-          />
-        </View>
+
+{/* Stylized table shape  (Not displaying properly) */}
+<View style={styles.tableShape} />
+
+{/* Stacks on top */}
+<View style={styles.stackWrapper}>
+  <CashStack
+    onRef={(api) => (cashRef.current = api)}
+    percentRemaining={parseFloat(percentRemaining)}
+  />
+</View>
+
+</View>
+
 
         {/* Demo button */}
         <TouchableOpacity
@@ -258,6 +268,22 @@ const styles = StyleSheet.create({
 
     elevation: 4,
   },
+
+  // tableShape: {
+  //   width: '90%',
+  //   height: 60,
+  //   backgroundColor: '#8B5A2B',   // brown fill
+  //   borderRadius: 12,
+  //   transform: [{ skewX: '-100deg'}], // gives diagonal edges
+  //   marginTop: 10,
+  // },
+
+  // stackWrapper: {
+  //   marginTop: -40,   // pulls stacks down onto the shape
+  //   alignItems: 'center',
+  // },
+  
+  
 
   sectionHeader: {
     flexDirection: 'row',
