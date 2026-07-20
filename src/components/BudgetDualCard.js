@@ -4,6 +4,20 @@ import MainMoneyStack from '../../assets/MainMoneyStack.png';
 import GoldenMoneyStack from '../../assets/GoldenMoneyStack.png';
 
 const GOLD_THRESHOLD = 75;
+const FAIR_THRESHOLD = 50;
+
+const ON_TRACK_STATUS = {
+  good: { label: 'Budget Master!', color: '#2a8a2a' },
+  fair: { label: 'Still on track!', color: '#d4a017' },
+  bad: { label: 'Budget better!', color: '#e53e3e' },
+};
+
+function getOnTrackStatus(progress) {
+  if (progress >= GOLD_THRESHOLD) return ON_TRACK_STATUS.good;
+  if (progress >= FAIR_THRESHOLD) return ON_TRACK_STATUS.fair;
+  return ON_TRACK_STATUS.bad;
+}
+
 // Golden PNG artwork is smaller within the same canvas; scale to match MainMoneyStack visual size.
 const GOLD_STACK_SCALE = 996 / 724;
 
@@ -249,6 +263,7 @@ export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
 
   const onTrackRounded = Math.round(onTrackProgress);
   const onTrackLabel = `${onTrackRounded}%`;
+  const onTrackStatus = getOnTrackStatus(onTrackProgress);
   const isHighScore = onTrackRounded >= GOLD_THRESHOLD;
   const onTrackFillRatio = Math.max(0, Math.min(1, onTrackProgress / 100));
 
@@ -278,8 +293,8 @@ export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
       <MetricColumn
         label="On-Track Progress"
         heroValue={onTrackLabel}
-        footerValue={onTrackLabel}
-        footerColor="#d4a017"
+        footerValue={onTrackStatus.label}
+        footerColor={onTrackStatus.color}
         heroColor={isHighScore ? '#FFE566' : '#fff'}
         isGold
         showSparkles
@@ -400,10 +415,14 @@ const styles = StyleSheet.create({
     color: '#888',
     fontWeight: '500',
     marginBottom: 4,
+    textAlign: 'center',
+    width: '100%',
   },
 
   footerValue: {
     fontWeight: '700',
+    textAlign: 'center',
+    width: '100%',
   },
 
   divider: {
