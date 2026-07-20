@@ -1,7 +1,10 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, useWindowDimensions } from 'react-native';
 import MainMoneyStack from '../../assets/MainMoneyStack.png';
 import GoldenMoneyStack from '../../assets/GoldenMoneyStack.png';
+import EditPencil from './EditPencil';
+import { EditBudgetModal } from './BudgetEditModals';
+import { useBudget } from '../context/BudgetContext';
 
 const GOLD_THRESHOLD = 75;
 const FAIR_THRESHOLD = 50;
@@ -195,6 +198,7 @@ function MetricColumn({
   showSparkles,
   intenseSparkles,
   budgetFillRatio,
+  onEditHero,
   layout,
 }) {
   return (
@@ -204,13 +208,16 @@ function MetricColumn({
         paddingBottom: layout.bluePaddingBottom,
       }]}>
         <Text style={[styles.metricLabel, { fontSize: layout.labelSize }]}>{label}</Text>
-        <Text
-          style={[styles.heroValue, { fontSize: layout.heroSize }, heroColor && { color: heroColor }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
-          {heroValue}
-        </Text>
+        <View style={styles.heroRow}>
+          <Text
+            style={[styles.heroValue, { fontSize: layout.heroSize }, heroColor && { color: heroColor }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {heroValue}
+          </Text>
+          {onEditHero ? <EditPencil onPress={onEditHero} light size={layout.editIconSize} /> : null}
+        </View>
       </View>
 
       <View style={[styles.stackSection, {
@@ -247,6 +254,8 @@ function MetricColumn({
 }
 
 export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
+  const { updateBudget } = useBudget();
+  const [budgetEditVisible, setBudgetEditVisible] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
   const cardHeight = screenHeight * 0.442;
   const budgetFillRatio = budget > 0
@@ -267,6 +276,7 @@ export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
       bluePaddingBottom: Math.round(52 * scale),
       blueSectionHeight: Math.round(cardHeight * 0.38),
       whiteSectionHeight: Math.round(cardHeight * 0.22),
+      editIconSize: Math.round(10 * scale),
     };
   }, [cardHeight]);
 
@@ -283,19 +293,21 @@ export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
   const remainingFormatted = formatCurrency(remaining);
 
   return (
-    <View style={[styles.card, { minHeight: cardHeight }]}>
-      <MetricColumn
-        label="Overall Budget"
-        heroValue={budgetFormatted}
-        footerLabel="Remaining"
-        footerValue={remainingFormatted}
-        footerColor="#1a6fd4"
-        isGold={false}
-        showSparkles={false}
-        intenseSparkles={false}
-        budgetFillRatio={budgetFillRatio}
-        layout={layout}
-      />
+    <>
+      <View style={[styles.card, { minHeight: cardHeight }]}>
+        <MetricColumn
+          label="Overall Budget"
+          heroValue={budgetFormatted}
+          footerLabel="Remaining"
+          footerValue={remainingFormatted}
+          footerColor="#1a6fd4"
+          isGold={false}
+          showSparkles={false}
+          intenseSparkles={false}
+          budgetFillRatio={budgetFillRatio}
+          onEditHero={() => setBudgetEditVisible(true)}
+          layout={layout}
+        />
 
       <View style={styles.divider} />
 
@@ -311,7 +323,15 @@ export default function BudgetDualCard({ remaining, onTrackProgress, budget }) {
         budgetFillRatio={onTrackFillRatio}
         layout={layout}
       />
-    </View>
+      </View>
+
+      <EditBudgetModal
+        visible={budgetEditVisible}
+        initialAmount={budget}
+        onSave={updateBudget}
+        onClose={() => setBudgetEditVisible(false)}
+      />
+    </>
   );
 }
 
@@ -355,6 +375,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     textAlign: 'center',
+    flexShrink: 1,
+  },
+
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    maxWidth: '100%',
   },
 
   stackSection: {

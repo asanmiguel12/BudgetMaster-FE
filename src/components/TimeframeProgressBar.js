@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { formatTimeframe } from '../context/BudgetContext';
+import { formatTimeframe, useBudget } from '../context/BudgetContext';
+import EditPencil from './EditPencil';
+import { EditTimeframeModal } from './BudgetEditModals';
 
 const GOLD_THRESHOLD = 75;
 const FAIR_THRESHOLD = 50;
@@ -24,6 +26,8 @@ export default function TimeframeProgressBar({
   previewDaysElapsed,
   onPreviewDaysElapsedChange,
 }) {
+  const { updateTimeframe } = useBudget();
+  const [timeframeEditVisible, setTimeframeEditVisible] = useState(false);
   const timeframeLabel = formatTimeframe(timeframe) || 'Budget period';
   const actualDaysElapsed = Math.max(0, totalDays - daysRemaining);
   const isPreview = previewDaysElapsed !== null && previewDaysElapsed !== actualDaysElapsed;
@@ -61,12 +65,25 @@ export default function TimeframeProgressBar({
     onPreviewDaysElapsedChange(null);
   };
 
+  useEffect(() => {
+    onPreviewDaysElapsedChange(null);
+  }, [totalDays, onPreviewDaysElapsedChange]);
+
+  const handleTimeframeSave = async (newTimeframe) => {
+    await updateTimeframe(newTimeframe);
+    onPreviewDaysElapsedChange(null);
+  };
+
   if (totalDays <= 0) return null;
 
   return (
+    <>
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.timeframeLabel}>{timeframeLabel}</Text>
+        <View style={styles.timeframeRow}>
+          <Text style={styles.timeframeLabel}>{timeframeLabel}</Text>
+          <EditPencil onPress={() => setTimeframeEditVisible(true)} size={10} />
+        </View>
         <Text style={styles.daysLeft}>{daysLeftLabel}</Text>
       </View>
 
@@ -98,6 +115,14 @@ export default function TimeframeProgressBar({
         <Text style={[styles.status, { color: status.color }]}>{status.label}</Text>
       </View>
     </View>
+
+    <EditTimeframeModal
+      visible={timeframeEditVisible}
+      initialTimeframe={timeframe}
+      onSave={handleTimeframeSave}
+      onClose={() => setTimeframeEditVisible(false)}
+    />
+    </>
   );
 }
 
@@ -116,6 +141,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
+  },
+
+  timeframeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
   },
 
   timeframeLabel: {

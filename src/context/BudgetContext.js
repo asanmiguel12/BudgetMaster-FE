@@ -164,6 +164,23 @@ export function BudgetProvider({ children }) {
     ]);
   }, []);
 
+  const updateBudget = useCallback(async (amount) => {
+    if (isNaN(amount) || amount <= 0) return;
+    setBudgetState(amount);
+    await AsyncStorage.setItem(BUDGET_STORAGE_KEY, String(amount));
+  }, []);
+
+  const updateTimeframe = useCallback(async (selectedTimeframe) => {
+    if (!isValidTimeframe(selectedTimeframe)) return;
+    const now = new Date().toISOString();
+    setTimeframeState(selectedTimeframe);
+    setPeriodStartDate(now);
+    await Promise.all([
+      AsyncStorage.setItem(TIMEFRAME_STORAGE_KEY, JSON.stringify(selectedTimeframe)),
+      AsyncStorage.setItem(PERIOD_START_STORAGE_KEY, now),
+    ]);
+  }, []);
+
   const spent = transactions.reduce((sum, t) => sum + t.amount, 0);
   const remaining = budget - spent;
   const percentRemaining = budget > 0 ? ((remaining / budget) * 100).toFixed(2) : '0.00';
@@ -204,6 +221,8 @@ export function BudgetProvider({ children }) {
       isLoadingBudget,
       needsBudgetSetup,
       setBudgetSetup,
+      updateBudget,
+      updateTimeframe,
       spent,
       remaining,
       percentRemaining,
