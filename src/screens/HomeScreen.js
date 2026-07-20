@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Animated, StatusBar,
@@ -6,7 +6,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CashStack from '../components/CashStack';
 import BudgetDualCard from '../components/BudgetDualCard';
-import { useBudget, formatTimeframe } from '../context/BudgetContext';
+import TimeframeProgressBar from '../components/TimeframeProgressBar';
+import { useBudget, getOnTrackProgressForDaysRemaining } from '../context/BudgetContext';
 
 function TransactionRow({ transaction }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -48,15 +49,19 @@ function TransactionRow({ transaction }) {
 export default function HomeScreen({ navigation }) {
   const {
     budget, remaining, timeframe,
-    onTrackProgress, daysRemaining,
+    daysRemaining, totalDays,
     transactions, pendingTransaction, isAnimating,
     simulateBankNotification,
   } = useBudget();
 
-  const timeframeLabel = formatTimeframe(timeframe);
-  const onTrackSubtext = daysRemaining === 1
-    ? '1 day left'
-    : `${daysRemaining} days left`;
+  const actualDaysElapsed = Math.max(0, totalDays - daysRemaining);
+  const [previewDaysElapsed, setPreviewDaysElapsed] = useState(null);
+
+  const displayOnTrackProgress = useMemo(() => {
+    const elapsed = previewDaysElapsed ?? actualDaysElapsed;
+    const previewDaysRemaining = Math.max(0, totalDays - elapsed);
+    return getOnTrackProgressForDaysRemaining(budget, remaining, totalDays, previewDaysRemaining);
+  }, [previewDaysElapsed, actualDaysElapsed, totalDays, budget, remaining]);
 
   const cashRef = useRef(null);
 
@@ -104,13 +109,9 @@ export default function HomeScreen({ navigation }) {
         {/* Dual metric card with cash stacks */}
         <BudgetDualCard
           remaining={remaining}
-          onTrackProgress={onTrackProgress}
+          onTrackProgress={displayOnTrackProgress}
           budget={budget}
         />
-
-        {transactions.length === 0 && (
-          <Text style={styles.timeframeHint}>{timeframeLabel} · {onTrackSubtext}</Text>
-        )}
 
         {/* Deducting label */}
         {isAnimating && pendingTransaction && (
@@ -124,6 +125,14 @@ export default function HomeScreen({ navigation }) {
           <CashStack
             miniOnly
             onRef={(api) => (cashRef.current = api)}
+          />
+          <TimeframeProgressBar
+            timeframe={timeframe}
+            totalDays={totalDays}
+            daysRemaining={daysRemaining}
+            onTrackProgress={displayOnTrackProgress}
+            previewDaysElapsed={previewDaysElapsed}
+            onPreviewDaysElapsedChange={setPreviewDaysElapsed}
           />
         </View>
 
@@ -181,14 +190,6 @@ const styles = StyleSheet.create({
   bellIcon: { fontSize: 20 },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#111' },
 
-  timeframeHint: {
-    textAlign: 'center',
-    fontSize: 13,
-    color: '#888',
-    marginTop: -8,
-    marginBottom: 4,
-  },
-
   processingText: {
     textAlign: 'center',
     color: '#1a6fd4',
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  cashArea: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 4 },
+  cashArea: { paddingHorizontal: 0, paddingTop: 4, paddingBottom: 4 },
 
   /* ⭐ NEW ACTIVITY BOX ⭐ */
   activityContainer: {

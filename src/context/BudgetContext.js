@@ -86,14 +86,18 @@ export function getBudgetPeriodDays(timeframe, periodStartDate) {
   return { totalDays, daysRemaining: totalDays - daysElapsed };
 }
 
-export function getOnTrackProgress(budget, remaining, timeframe, periodStartDate) {
-  const { totalDays, daysRemaining } = getBudgetPeriodDays(timeframe, periodStartDate);
+export function getOnTrackProgressForDaysRemaining(budget, remaining, totalDays, daysRemaining) {
   if (totalDays <= 0 || budget <= 0) return 100;
 
   const expectedRemaining = budget * (daysRemaining / totalDays);
   if (expectedRemaining <= 0) return remaining >= 0 ? 100 : 0;
 
   return (remaining / expectedRemaining) * 100;
+}
+
+export function getOnTrackProgress(budget, remaining, timeframe, periodStartDate) {
+  const { totalDays, daysRemaining } = getBudgetPeriodDays(timeframe, periodStartDate);
+  return getOnTrackProgressForDaysRemaining(budget, remaining, totalDays, daysRemaining);
 }
 
 const INITIAL_TRANSACTIONS = [];
