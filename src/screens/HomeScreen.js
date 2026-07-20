@@ -97,7 +97,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Budget Me</Text>
+        <Text style={styles.headerTitle}>Budget Master</Text>
 
         <TouchableOpacity style={styles.bellBtn}>
           <Text style={styles.bellIcon}>🔔</Text>

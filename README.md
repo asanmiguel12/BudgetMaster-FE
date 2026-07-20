@@ -1,4 +1,4 @@
-# MyBudget — iOS Budgeting App
+# Budget Master — iOS Budgeting App
 
 A React Native (Expo) budgeting app that mirrors the cash-stack UI from the design mockup.
 
@@ -36,7 +36,7 @@ npx expo start
 ## Project Structure
 
 ```
-MyBudget/
+BudgetMaster/
 ├── App.js                          # Root: navigation + providers
 ├── src/
 │   ├── context/

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyBudget",
-    "slug": "MyBudget",
+    "name": "Budget Master",
+    "slug": "budget-master",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
