@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { serializeBudgets, deserializeBudgets } from '../api/budgetSerialization';
+import { fetchBudgetState, syncBudgetState } from '../api/budgetApi';
+import { isApiEnabled } from '../api/config';
 
 const BudgetContext = createContext();
 
@@ -165,30 +168,6 @@ export function createBudget({ amount, timeframe, name = '', periodStartDate }) 
   };
 }
 
-function serializeBudgets(budgets) {
-  return JSON.stringify(
-    budgets.map((b) => ({
-      ...b,
-      transactions: (b.transactions || []).map((tx) => ({
-        ...tx,
-        date: tx.date instanceof Date ? tx.date.toISOString() : tx.date,
-      })),
-    })),
-  );
-}
-
-function deserializeBudgets(raw) {
-  const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed)) return [];
-  return parsed.map((b) => ({
-    ...b,
-    transactions: (b.transactions || []).map((tx) => ({
-      ...tx,
-      date: new Date(tx.date),
-    })),
-  }));
-}
-
 async function loadBudgetsFromStorage() {
   const savedBudgets = await AsyncStorage.getItem(BUDGETS_STORAGE_KEY);
   if (savedBudgets) {
@@ -225,11 +204,40 @@ async function loadBudgetsFromStorage() {
   return [];
 }
 
+async function loadBudgetState() {
+  const localBudgets = await loadBudgetsFromStorage();
+  const savedIndex = await AsyncStorage.getItem(ACTIVE_BUDGET_INDEX_KEY);
+  const parsedIndex = savedIndex !== null ? parseInt(savedIndex, 10) : 0;
+  const localIndex = localBudgets.length > 0
+    ? Math.min(Math.max(0, parsedIndex), localBudgets.length - 1)
+    : 0;
+  const localState = { budgets: localBudgets, activeBudgetIndex: localIndex };
+
+  if (isApiEnabled()) {
+    try {
+      const remoteState = await fetchBudgetState();
+      if (remoteState?.budgets?.length > 0) {
+        return remoteState;
+      }
+      if (localBudgets.length > 0) {
+        await syncBudgetState(localBudgets, localIndex);
+        return localState;
+      }
+      return remoteState ?? localState;
+    } catch (error) {
+      console.warn('Failed to load budgets from API, falling back to local storage:', error.message);
+    }
+  }
+
+  return localState;
+}
+
 export function BudgetProvider({ children }) {
   const [budgets, setBudgetsState] = useState([]);
   const [activeBudgetIndex, setActiveBudgetIndexState] = useState(0);
   const [isLoadingBudget, setIsLoadingBudget] = useState(true);
   const [needsBudgetSetup, setNeedsBudgetSetup] = useState(false);
+  const [syncError, setSyncError] = useState(null);
   const [pendingTransaction, setPendingTransaction] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const activeBudgetIndexRef = useRef(0);
@@ -239,6 +247,16 @@ export function BudgetProvider({ children }) {
       AsyncStorage.setItem(BUDGETS_STORAGE_KEY, serializeBudgets(nextBudgets)),
       AsyncStorage.setItem(ACTIVE_BUDGET_INDEX_KEY, String(nextIndex)),
     ]);
+
+    if (isApiEnabled()) {
+      try {
+        await syncBudgetState(nextBudgets, nextIndex);
+        setSyncError(null);
+      } catch (error) {
+        console.warn('Failed to sync budgets to API:', error.message);
+        setSyncError(error.message);
+      }
+    }
   }, [activeBudgetIndex]);
 
   const updateBudgets = useCallback((updater, nextIndex) => {
@@ -251,17 +269,10 @@ export function BudgetProvider({ children }) {
   }, [persistBudgets]);
 
   useEffect(() => {
-    Promise.all([
-      loadBudgetsFromStorage(),
-      AsyncStorage.getItem(ACTIVE_BUDGET_INDEX_KEY),
-    ]).then(([loadedBudgets, savedIndex]) => {
-      const parsedIndex = savedIndex !== null ? parseInt(savedIndex, 10) : 0;
-      const safeIndex = loadedBudgets.length > 0
-        ? Math.min(Math.max(0, parsedIndex), loadedBudgets.length - 1)
-        : 0;
-
+    loadBudgetState().then(({ budgets: loadedBudgets, activeBudgetIndex: safeIndex }) => {
       setBudgetsState(loadedBudgets);
       setActiveBudgetIndexState(safeIndex);
+      activeBudgetIndexRef.current = safeIndex;
       setNeedsBudgetSetup(loadedBudgets.length === 0);
       setIsLoadingBudget(false);
 
@@ -407,6 +418,8 @@ export function BudgetProvider({ children }) {
       periodStartDate,
       isLoadingBudget,
       needsBudgetSetup,
+      syncError,
+      isApiEnabled: isApiEnabled(),
       setBudgetSetup,
       addBudget,
       updateBudget,
