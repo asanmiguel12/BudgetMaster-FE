@@ -337,7 +337,7 @@ export default function BudgetDualCard({
             styles.budgetNameDisplay,
             !isValidBudgetName(budgetName) && styles.budgetNameRequired,
           ]}>
-            {budgetName || 'Choose a category *'}
+            {budgetName || 'Name Budget*'}
           </Text>
           {isActive && <EditPencil onPress={() => setNameEditVisible(true)} size={12} />}
         </TouchableOpacity>
