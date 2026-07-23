@@ -1,14 +1,15 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, StatusBar,
+  Animated, StatusBar, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CashStack from '../components/CashStack';
 import BudgetCarousel from '../components/BudgetCarousel';
-import TimeframeProgressBar from '../components/TimeframeProgressBar';
 import BudgetSetupModal from '../components/BudgetSetupModal';
-import { useBudget, getOnTrackProgressForDaysRemaining } from '../context/BudgetContext';
+import EditPencil from '../components/EditPencil';
+import { EditBudgetNameModal } from '../components/BudgetEditModals';
+import { useBudget, isValidBudgetName } from '../context/BudgetContext';
 
 function TransactionRow({ transaction }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -47,23 +48,23 @@ function TransactionRow({ transaction }) {
   );
 }
 
+const TAB_ROUTES = [
+  { name: 'Home', label: 'Home', icon: '🏠' },
+  { name: 'Activity', label: 'Activity', icon: '📋' },
+  { name: 'Insights', label: 'Insights', icon: '📊' },
+  { name: 'Profile', label: 'Profile', icon: '👤' },
+];
+
 export default function HomeScreen({ navigation }) {
   const {
-    budget, remaining, timeframe,
-    daysRemaining, totalDays,
     transactions, pendingTransaction, isAnimating,
-    simulateBankNotification, addBudget,
+    simulateBankNotification, addBudget, budgetName, updateBudgetName,
   } = useBudget();
 
-  const actualDaysElapsed = Math.max(0, totalDays - daysRemaining);
   const [previewDaysElapsed, setPreviewDaysElapsed] = useState(null);
   const [showAddBudget, setShowAddBudget] = useState(false);
-
-  const displayOnTrackProgress = useMemo(() => {
-    const elapsed = previewDaysElapsed ?? actualDaysElapsed;
-    const previewDaysRemaining = Math.max(0, totalDays - elapsed);
-    return getOnTrackProgressForDaysRemaining(budget, remaining, totalDays, previewDaysRemaining);
-  }, [previewDaysElapsed, actualDaysElapsed, totalDays, budget, remaining]);
+  const [nameEditVisible, setNameEditVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const cashRef = useRef(null);
 
@@ -95,26 +96,88 @@ export default function HomeScreen({ navigation }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuBtn}>
+        <TouchableOpacity
+          style={styles.menuBtn}
+          onPress={() => setMenuVisible(true)}
+          activeOpacity={0.7}
+        >
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Budget Master</Text>
 
-        <TouchableOpacity
-          style={styles.newBudgetBtn}
-          onPress={() => setShowAddBudget(true)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.newBudgetBtnText}>+</Text>
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuBackdrop}
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.menuPanel} onStartShouldSetResponder={() => true}>
+            {TAB_ROUTES.map((route) => (
+              <TouchableOpacity
+                key={route.name}
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  navigation.navigate(route.name);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.menuItemIcon}>{route.icon}</Text>
+                <Text style={styles.menuItemLabel}>{route.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <EditBudgetNameModal
+        visible={nameEditVisible}
+        initialName={budgetName}
+        onSave={updateBudgetName}
+        onClose={() => setNameEditVisible(false)}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         directionalLockEnabled
         contentContainerStyle={{ paddingBottom: 140 }}
       >
+
+        <View style={styles.carouselToolbar}>
+          <TouchableOpacity
+            style={styles.budgetNameTapArea}
+            onPress={() => setNameEditVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.budgetName,
+                !isValidBudgetName(budgetName) && styles.budgetNameRequired,
+              ]}
+              numberOfLines={1}
+            >
+              {budgetName || 'Name Budget*'}
+            </Text>
+            <EditPencil onPress={() => setNameEditVisible(true)} size={12} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.newBudgetBtn}
+            onPress={() => setShowAddBudget(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.newBudgetBtnText}>+ New Budget</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Swipeable budget cards */}
         <BudgetCarousel
@@ -140,14 +203,6 @@ export default function HomeScreen({ navigation }) {
           <CashStack
             miniOnly
             onRef={(api) => (cashRef.current = api)}
-          />
-          <TimeframeProgressBar
-            timeframe={timeframe}
-            totalDays={totalDays}
-            daysRemaining={daysRemaining}
-            onTrackProgress={displayOnTrackProgress}
-            previewDaysElapsed={previewDaysElapsed}
-            onPreviewDaysElapsedChange={setPreviewDaysElapsed}
           />
         </View>
 
@@ -199,8 +254,66 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
 
-  menuBtn: { padding: 4 },
+  menuBtn: { padding: 4, width: 32 },
   menuIcon: { fontSize: 20, color: '#333' },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111',
+    textAlign: 'center',
+  },
+  headerSpacer: { width: 32 },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    paddingTop: 56,
+    paddingHorizontal: 20,
+  },
+  menuPanel: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  menuItemIcon: { fontSize: 20 },
+  menuItemLabel: { fontSize: 16, fontWeight: '500', color: '#111' },
+  carouselToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    gap: 12,
+  },
+  budgetNameTapArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  budgetName: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#444',
+  },
+  budgetNameRequired: {
+    color: '#1a6fd4',
+    fontStyle: 'italic',
+  },
   newBudgetBtn: {
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -212,7 +325,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1a6fd4',
   },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#111' },
 
   processingText: {
     textAlign: 'center',

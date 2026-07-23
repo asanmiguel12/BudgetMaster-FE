@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import BudgetDualCard from './BudgetDualCard';
+import TimeframeProgressBar from './TimeframeProgressBar';
 import { useBudget, getBudgetMetrics, getOnTrackProgressForDaysRemaining } from '../context/BudgetContext';
 
 export default function BudgetCarousel({ previewDaysElapsed, onPreviewDaysElapsedChange }) {
@@ -77,17 +78,31 @@ export default function BudgetCarousel({ previewDaysElapsed, onPreviewDaysElapse
           }, 100);
         }}
         renderItem={({ item, index }) => {
-          const { remaining, onTrackProgress } = getBudgetMetrics(item);
+          const { remaining, totalDays, daysRemaining } = getBudgetMetrics(item);
+          const isActive = index === activeBudgetIndex;
           return (
             <View style={{ width }}>
               <BudgetDualCard
                 budget={item.amount}
                 remaining={remaining}
                 onTrackProgress={getDisplayOnTrack(item, index)}
-                budgetName={item.name}
                 onUpdateBudget={(amount) => updateBudgetById(item.id, { amount })}
-                onUpdateBudgetName={(name) => updateBudgetById(item.id, { name })}
-                isActive={index === activeBudgetIndex}
+                isActive={isActive}
+              />
+              <TimeframeProgressBar
+                timeframe={item.timeframe}
+                totalDays={totalDays}
+                daysRemaining={daysRemaining}
+                onTrackProgress={getDisplayOnTrack(item, index)}
+                previewDaysElapsed={isActive ? previewDaysElapsed : null}
+                onPreviewDaysElapsedChange={isActive ? onPreviewDaysElapsedChange : undefined}
+                isActive={isActive}
+                onUpdateTimeframe={(selectedTimeframe) =>
+                  updateBudgetById(item.id, {
+                    timeframe: selectedTimeframe,
+                    periodStartDate: new Date().toISOString(),
+                  })
+                }
               />
             </View>
           );

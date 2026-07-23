@@ -25,8 +25,11 @@ export default function TimeframeProgressBar({
   onTrackProgress,
   previewDaysElapsed,
   onPreviewDaysElapsedChange,
+  isActive = true,
+  onUpdateTimeframe: onUpdateTimeframeProp,
 }) {
-  const { updateTimeframe } = useBudget();
+  const { updateTimeframe: contextUpdateTimeframe } = useBudget();
+  const updateTimeframe = onUpdateTimeframeProp ?? contextUpdateTimeframe;
   const [timeframeEditVisible, setTimeframeEditVisible] = useState(false);
   const timeframeLabel = formatTimeframe(timeframe) || 'Budget period';
   const actualDaysElapsed = Math.max(0, totalDays - daysRemaining);
@@ -55,35 +58,72 @@ export default function TimeframeProgressBar({
     : 'Starting period';
 
   const handleSliderChange = (value) => {
+    if (!isActive) return;
     const rounded = Math.round(value);
     setSliderValue(rounded);
-    onPreviewDaysElapsedChange(rounded === actualDaysElapsed ? null : rounded);
+    onPreviewDaysElapsedChange?.(rounded === actualDaysElapsed ? null : rounded);
   };
 
   const handleReset = () => {
+    if (!isActive) return;
     setSliderValue(actualDaysElapsed);
-    onPreviewDaysElapsedChange(null);
+    onPreviewDaysElapsedChange?.(null);
   };
 
   useEffect(() => {
-    onPreviewDaysElapsedChange(null);
-  }, [totalDays, onPreviewDaysElapsedChange]);
+    if (isActive) {
+      onPreviewDaysElapsedChange?.(null);
+    }
+  }, [totalDays, isActive, onPreviewDaysElapsedChange]);
 
   const handleTimeframeSave = async (newTimeframe) => {
     await updateTimeframe(newTimeframe);
-    onPreviewDaysElapsedChange(null);
+    onPreviewDaysElapsedChange?.(null);
   };
 
-  if (totalDays <= 0) return null;
+  const openTimeframeEdit = () => {
+    if (isActive) setTimeframeEditVisible(true);
+  };
+
+  if (totalDays <= 0) {
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.container}
+          onPress={openTimeframeEdit}
+          activeOpacity={isActive ? 0.7 : 1}
+          disabled={!isActive}
+        >
+          <Text style={[styles.timeframeLabel, isActive && styles.timeframeLabelTappable]}>
+            Set budget timeframe to track progress
+          </Text>
+        </TouchableOpacity>
+
+        <EditTimeframeModal
+          visible={timeframeEditVisible}
+          initialTimeframe={timeframe}
+          onSave={handleTimeframeSave}
+          onClose={() => setTimeframeEditVisible(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <>
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <View style={styles.timeframeRow}>
-          <Text style={styles.timeframeLabel}>{timeframeLabel}</Text>
-          <EditPencil onPress={() => setTimeframeEditVisible(true)} size={10} />
-        </View>
+        <TouchableOpacity
+          style={styles.timeframeRow}
+          onPress={openTimeframeEdit}
+          activeOpacity={isActive ? 0.7 : 1}
+          disabled={!isActive}
+        >
+          <Text style={[styles.timeframeLabel, isActive && styles.timeframeLabelTappable]}>
+            {timeframeLabel}
+          </Text>
+          {isActive && <EditPencil onPress={openTimeframeEdit} size={10} />}
+        </TouchableOpacity>
         <Text style={styles.daysLeft}>{daysLeftLabel}</Text>
       </View>
 
@@ -97,6 +137,7 @@ export default function TimeframeProgressBar({
         minimumTrackTintColor="#1a6fd4"
         maximumTrackTintColor="#e8e8e8"
         thumbTintColor="#1a6fd4"
+        disabled={!isActive}
       />
 
       <View style={styles.footerRow}>
@@ -161,6 +202,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#111',
+  },
+
+  timeframeLabelTappable: {
+    color: '#1a6fd4',
   },
 
   daysLeft: {

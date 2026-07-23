@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, useWindowDi
 import MainMoneyStack from '../../assets/MainMoneyStack.png';
 import GoldenMoneyStack from '../../assets/GoldenMoneyStack.png';
 import EditPencil from './EditPencil';
-import { EditBudgetModal, EditBudgetNameModal } from './BudgetEditModals';
-import { useBudget, isValidBudgetName } from '../context/BudgetContext';
+import { EditBudgetModal } from './BudgetEditModals';
+import { useBudget } from '../context/BudgetContext';
 
 const GOLD_THRESHOLD = 75;
 const FAIR_THRESHOLD = 50;
@@ -274,17 +274,12 @@ export default function BudgetDualCard({
   remaining,
   onTrackProgress,
   budget,
-  budgetName: budgetNameProp,
   onUpdateBudget: onUpdateBudgetProp,
-  onUpdateBudgetName: onUpdateBudgetNameProp,
   isActive = true,
 }) {
   const context = useBudget();
-  const budgetName = budgetNameProp ?? context.budgetName;
   const updateBudget = onUpdateBudgetProp ?? context.updateBudget;
-  const updateBudgetName = onUpdateBudgetNameProp ?? context.updateBudgetName;
   const [budgetEditVisible, setBudgetEditVisible] = useState(false);
-  const [nameEditVisible, setNameEditVisible] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
   const cardHeight = screenHeight * 0.442 * 0.9 * 0.85;
   const budgetFillRatio = budget > 0
@@ -326,23 +321,6 @@ export default function BudgetDualCard({
 
   return (
     <>
-      <View style={styles.nameHeader}>
-        <TouchableOpacity
-          style={styles.nameTapArea}
-          onPress={() => isActive && setNameEditVisible(true)}
-          activeOpacity={isActive ? 0.7 : 1}
-          disabled={!isActive}
-        >
-          <Text style={[
-            styles.budgetNameDisplay,
-            !isValidBudgetName(budgetName) && styles.budgetNameRequired,
-          ]}>
-            {budgetName || 'Name Budget*'}
-          </Text>
-          {isActive && <EditPencil onPress={() => setNameEditVisible(true)} size={12} />}
-        </TouchableOpacity>
-      </View>
-
       <View style={[styles.card, { minHeight: cardHeight, marginBottom: -layout.cardBottomGap }]}>
         <MetricColumn
           label="Overall Budget"
@@ -381,44 +359,11 @@ export default function BudgetDualCard({
         onSave={updateBudget}
         onClose={() => setBudgetEditVisible(false)}
       />
-
-      <EditBudgetNameModal
-        visible={nameEditVisible && isActive}
-        initialName={budgetName}
-        onSave={updateBudgetName}
-        onClose={() => setNameEditVisible(false)}
-      />
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  nameHeader: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    alignItems: 'flex-end',
-  },
-
-  nameTapArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    maxWidth: '100%',
-  },
-
-  budgetNameDisplay: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#444',
-    textAlign: 'right',
-  },
-
-  budgetNameRequired: {
-    color: '#1a6fd4',
-    fontStyle: 'italic',
-  },
-
   card: {
     flexDirection: 'row',
     marginHorizontal: 16,
