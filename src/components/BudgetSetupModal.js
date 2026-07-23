@@ -97,7 +97,7 @@ export default function BudgetSetupModal({ visible, onComplete, onClose, title }
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {step === 'name' ? (
                 <>
-                  <Text style={styles.title}>{title ? 'Name this budget' : 'Name your budget'}</Text>
+                  <Text style={styles.title}>{title ? 'Name New Budget' : 'Name your budget'}</Text>
                   <Text style={styles.subtitle}>
                     Pick a category or enter a custom name. This is required.
                   </Text>

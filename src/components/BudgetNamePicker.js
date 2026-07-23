@@ -65,6 +65,7 @@ export default function BudgetNamePicker({ value, onChange, autoFocusCustom = fa
         returnKeyType="done"
         autoCorrect={false}
         autoFocus={autoFocusCustom && !value}
+        textAlign="center"
       />
 
       {!isValidBudgetName(value) && (
@@ -121,7 +122,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   customInput: {
-    width: '100%',
+    alignSelf: 'center',
+    width: '85%',
+    maxWidth: 280,
     borderWidth: 1.5,
     borderColor: '#ddd',
     borderRadius: 12,
@@ -130,6 +133,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111',
     backgroundColor: '#fff',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   requiredHint: {
     fontSize: 12,

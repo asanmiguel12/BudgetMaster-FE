@@ -108,14 +108,6 @@ export default function BudgetCarousel({ previewDaysElapsed, onPreviewDaysElapse
   );
 }
 
-export function AddBudgetButton({ onPress }) {
-  return (
-    <TouchableOpacity style={styles.addBtn} onPress={onPress} activeOpacity={0.7}>
-      <Text style={styles.addBtnText}>+ New Budget</Text>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
   dotsRow: {
     flexDirection: 'row',
@@ -134,17 +126,5 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: '#1a6fd4',
     width: 18,
-  },
-  addBtn: {
-    alignSelf: 'center',
-    marginTop: 6,
-    marginBottom: 2,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-  },
-  addBtnText: {
-    color: '#1a6fd4',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

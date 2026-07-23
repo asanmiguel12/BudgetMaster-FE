@@ -99,7 +99,7 @@ export function EditBudgetNameModal({ visible, initialName, onSave, onClose }) {
       <Pressable style={styles.overlay} onPress={onClose}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.title}>Budget name</Text>
+            <Text style={styles.title}>Budget Name</Text>
             <Text style={styles.subtitle}>Pick a category or enter a custom name.</Text>
 
             <BudgetNamePicker value={name} onChange={setName} />

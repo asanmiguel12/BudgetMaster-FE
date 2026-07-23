@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CashStack from '../components/CashStack';
-import BudgetCarousel, { AddBudgetButton } from '../components/BudgetCarousel';
+import BudgetCarousel from '../components/BudgetCarousel';
 import TimeframeProgressBar from '../components/TimeframeProgressBar';
 import BudgetSetupModal from '../components/BudgetSetupModal';
 import { useBudget, getOnTrackProgressForDaysRemaining } from '../context/BudgetContext';
@@ -101,8 +101,12 @@ export default function HomeScreen({ navigation }) {
 
         <Text style={styles.headerTitle}>Budget Master</Text>
 
-        <TouchableOpacity style={styles.bellBtn}>
-          <Text style={styles.bellIcon}>🔔</Text>
+        <TouchableOpacity
+          style={styles.newBudgetBtn}
+          onPress={() => setShowAddBudget(true)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.newBudgetBtnText}>+</Text>
         </TouchableOpacity>
       </View>
 
@@ -117,8 +121,6 @@ export default function HomeScreen({ navigation }) {
           previewDaysElapsed={previewDaysElapsed}
           onPreviewDaysElapsedChange={setPreviewDaysElapsed}
         />
-        <AddBudgetButton onPress={() => setShowAddBudget(true)} />
-
         <BudgetSetupModal
           visible={showAddBudget}
           title="Add a budget"
@@ -199,8 +201,17 @@ const styles = StyleSheet.create({
 
   menuBtn: { padding: 4 },
   menuIcon: { fontSize: 20, color: '#333' },
-  bellBtn: { padding: 4 },
-  bellIcon: { fontSize: 20 },
+  newBudgetBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#f0f7ff',
+  },
+  newBudgetBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1a6fd4',
+  },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#111' },
 
   processingText: {
