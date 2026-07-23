@@ -80,6 +80,7 @@ export default function ActivityScreen() {
 
       <FlatList
         data={[{ key: 'content' }]}
+        contentContainerStyle={{ paddingBottom: 110 }}
         renderItem={() => (
           <View style={styles.listContent}>
             {transactions.length === 0 ? (

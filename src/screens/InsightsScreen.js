@@ -33,7 +33,10 @@ export default function InsightsScreen() {
         <Text style={styles.title}>Insights</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 110 }}
+      >
         {/* Overview cards */}
         <View style={styles.cardGrid}>
           <View style={styles.card}>

@@ -87,6 +87,8 @@ export default function CashStack({ onRef, miniOnly = false }) {
 }
 
 /* MINI STACK COMPONENT */
+const MINI_SCALE = 0.8;
+
 const MiniStack = forwardRef((props, ref) => {
   const flyAnim = useRef(new Animated.Value(0)).current;
 
@@ -105,7 +107,7 @@ const MiniStack = forwardRef((props, ref) => {
       {
         translateY: flyAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -120],
+          outputRange: [0, -120 * MINI_SCALE],
         }),
       },
       {
@@ -155,23 +157,23 @@ const styles = StyleSheet.create({
   miniRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 260,
-    marginTop: -10,
+    width: 260 * MINI_SCALE,
+    marginTop: -10 * MINI_SCALE,
   },
 });
 
 const miniStyles = StyleSheet.create({
   wrapper: {
-    width: 60,
-    height: 90,
+    width: 60 * MINI_SCALE,
+    height: 90 * MINI_SCALE,
     alignItems: 'center',
     justifyContent: 'flex-end',
     position: 'relative',
   },
 
   billImage: {
-    width: 190,
-    height: 90,
+    width: 190 * MINI_SCALE,
+    height: 90 * MINI_SCALE,
     resizeMode: 'contain',
     position: 'absolute',
   },

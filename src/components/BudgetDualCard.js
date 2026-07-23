@@ -286,7 +286,7 @@ export default function BudgetDualCard({
   const [budgetEditVisible, setBudgetEditVisible] = useState(false);
   const [nameEditVisible, setNameEditVisible] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
-  const cardHeight = screenHeight * 0.442 * 0.9;
+  const cardHeight = screenHeight * 0.442 * 0.9 * 0.85;
   const budgetFillRatio = budget > 0
     ? Math.max(0, Math.min(1, remaining / budget))
     : 1;
