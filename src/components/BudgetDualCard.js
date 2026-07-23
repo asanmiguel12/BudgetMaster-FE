@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Animated, Easing, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, useWindowDimensions } from 'react-native';
 import MainMoneyStack from '../../assets/MainMoneyStack.png';
 import GoldenMoneyStack from '../../assets/GoldenMoneyStack.png';
 import EditPencil from './EditPencil';
-import { EditBudgetModal } from './BudgetEditModals';
-import { useBudget } from '../context/BudgetContext';
+import { EditBudgetModal, EditBudgetNameModal } from './BudgetEditModals';
+import { useBudget, isValidBudgetName } from '../context/BudgetContext';
 
 const GOLD_THRESHOLD = 75;
 const FAIR_THRESHOLD = 50;
@@ -284,6 +284,7 @@ export default function BudgetDualCard({
   const updateBudget = onUpdateBudgetProp ?? context.updateBudget;
   const updateBudgetName = onUpdateBudgetNameProp ?? context.updateBudgetName;
   const [budgetEditVisible, setBudgetEditVisible] = useState(false);
+  const [nameEditVisible, setNameEditVisible] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
   const cardHeight = screenHeight * 0.442 * 0.9;
   const budgetFillRatio = budget > 0
@@ -326,17 +327,20 @@ export default function BudgetDualCard({
   return (
     <>
       <View style={styles.nameHeader}>
-        <TextInput
-          style={styles.budgetNameInput}
-          value={budgetName}
-          onChangeText={updateBudgetName}
-          onEndEditing={() => updateBudgetName(budgetName.trim())}
-          placeholder="Name your budget"
-          placeholderTextColor="#aaa"
-          maxLength={40}
-          returnKeyType="done"
-          autoCorrect={false}
-        />
+        <TouchableOpacity
+          style={styles.nameTapArea}
+          onPress={() => isActive && setNameEditVisible(true)}
+          activeOpacity={isActive ? 0.7 : 1}
+          disabled={!isActive}
+        >
+          <Text style={[
+            styles.budgetNameDisplay,
+            !isValidBudgetName(budgetName) && styles.budgetNameRequired,
+          ]}>
+            {budgetName || 'Choose a category *'}
+          </Text>
+          {isActive && <EditPencil onPress={() => setNameEditVisible(true)} size={12} />}
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.card, { minHeight: cardHeight, marginBottom: -layout.cardBottomGap }]}>
@@ -377,6 +381,13 @@ export default function BudgetDualCard({
         onSave={updateBudget}
         onClose={() => setBudgetEditVisible(false)}
       />
+
+      <EditBudgetNameModal
+        visible={nameEditVisible && isActive}
+        initialName={budgetName}
+        onSave={updateBudgetName}
+        onClose={() => setNameEditVisible(false)}
+      />
     </>
   );
 }
@@ -389,14 +400,23 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  budgetNameInput: {
+  nameTapArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    maxWidth: '100%',
+  },
+
+  budgetNameDisplay: {
     fontSize: 15,
     fontWeight: '600',
     color: '#444',
-    paddingVertical: 4,
-    paddingHorizontal: 2,
     textAlign: 'right',
-    minWidth: 160,
+  },
+
+  budgetNameRequired: {
+    color: '#1a6fd4',
+    fontStyle: 'italic',
   },
 
   card: {

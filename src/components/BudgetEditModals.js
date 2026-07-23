@@ -11,7 +11,8 @@ import {
   Pressable,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { TIME_UNITS, formatTimeframe } from '../context/BudgetContext';
+import { TIME_UNITS, formatTimeframe, isValidBudgetName } from '../context/BudgetContext';
+import BudgetNamePicker from './BudgetNamePicker';
 
 const UNIT_OPTIONS = Object.entries(TIME_UNITS).map(([id, { label }]) => ({ id, label }));
 
@@ -56,6 +57,52 @@ export function EditBudgetModal({ visible, initialAmount, onSave, onClose }) {
                 onSubmitEditing={handleSave}
               />
             </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveBtn, !isValid && styles.saveBtnDisabled]}
+                onPress={handleSave}
+                disabled={!isValid}
+              >
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Pressable>
+    </Modal>
+  );
+}
+
+export function EditBudgetNameModal({ visible, initialName, onSave, onClose }) {
+  const [name, setName] = useState('');
+  const isValid = isValidBudgetName(name);
+
+  useEffect(() => {
+    if (visible) {
+      setName(initialName || '');
+    }
+  }, [visible, initialName]);
+
+  const handleSave = () => {
+    if (isValid) {
+      onSave(name.trim());
+      onClose();
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="fade" transparent statusBarTranslucent onRequestClose={onClose}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.title}>Budget name</Text>
+            <Text style={styles.subtitle}>Pick a category or enter a custom name.</Text>
+
+            <BudgetNamePicker value={name} onChange={setName} />
 
             <View style={styles.actions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>

@@ -19,6 +19,20 @@ export const TIME_UNITS = {
   years: { label: 'Years', singular: 'year', max: 10 },
 };
 
+export const BUDGET_NAME_PRESETS = [
+  { id: 'general', label: 'General', icon: '💰' },
+  { id: 'food', label: 'Food', icon: '🍽️' },
+  { id: 'transport', label: 'Transport', icon: '🚗' },
+  { id: 'home-bills', label: 'Home Bills', icon: '🏠' },
+  { id: 'self-care', label: 'Self Care', icon: '✨' },
+  { id: 'shopping', label: 'Shopping', icon: '🛍️' },
+  { id: 'health', label: 'Health', icon: '💚' },
+];
+
+export function isValidBudgetName(name) {
+  return typeof name === 'string' && name.trim().length > 0;
+}
+
 const LEGACY_TIMEFRAMES = {
   weekly: { unit: 'weeks', duration: 1 },
   monthly: { unit: 'months', duration: 1 },
@@ -274,11 +288,13 @@ export function BudgetProvider({ children }) {
 
   const activeMetrics = useMemo(() => getBudgetMetrics(activeBudget), [activeBudget]);
 
-  const setBudgetSetup = useCallback(async (amount, selectedTimeframe) => {
+  const setBudgetSetup = useCallback(async (amount, selectedTimeframe, name) => {
+    if (!isValidBudgetName(name)) return;
     const now = new Date().toISOString();
     const newBudget = createBudget({
       amount,
       timeframe: selectedTimeframe,
+      name: name.trim(),
       periodStartDate: now,
     });
     setBudgetsState([newBudget]);
@@ -287,12 +303,13 @@ export function BudgetProvider({ children }) {
     await persistBudgets([newBudget], 0);
   }, [persistBudgets]);
 
-  const addBudget = useCallback(async (amount, selectedTimeframe, name = '') => {
+  const addBudget = useCallback(async (amount, selectedTimeframe, name) => {
+    if (!isValidBudgetName(name)) return null;
     const now = new Date().toISOString();
     const newBudget = createBudget({
       amount,
       timeframe: selectedTimeframe,
-      name,
+      name: name.trim(),
       periodStartDate: now,
     });
     setBudgetsState((prev) => {
@@ -319,7 +336,8 @@ export function BudgetProvider({ children }) {
   }, [updateActiveBudget]);
 
   const updateBudgetName = useCallback(async (name) => {
-    updateActiveBudget({ name });
+    if (!isValidBudgetName(name)) return;
+    updateActiveBudget({ name: name.trim() });
   }, [updateActiveBudget]);
 
   const updateTimeframe = useCallback(async (selectedTimeframe) => {
@@ -331,8 +349,9 @@ export function BudgetProvider({ children }) {
   }, [updateActiveBudget]);
 
   const updateBudgetById = useCallback((budgetId, patch) => {
+    if (patch.name !== undefined && !isValidBudgetName(patch.name)) return;
     updateBudgets((prev) =>
-      prev.map((b) => (b.id === budgetId ? { ...b, ...patch } : b)),
+      prev.map((b) => (b.id === budgetId ? { ...b, ...patch, name: patch.name?.trim() ?? b.name } : b)),
     );
   }, [updateBudgets]);
 

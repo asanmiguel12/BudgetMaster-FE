@@ -122,7 +122,7 @@ export default function HomeScreen({ navigation }) {
         <BudgetSetupModal
           visible={showAddBudget}
           title="Add a budget"
-          onComplete={(amount, selectedTimeframe) => addBudget(amount, selectedTimeframe)}
+          onComplete={(amount, selectedTimeframe, name) => addBudget(amount, selectedTimeframe, name)}
           onClose={() => setShowAddBudget(false)}
         />
 
