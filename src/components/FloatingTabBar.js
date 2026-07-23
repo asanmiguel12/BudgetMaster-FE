@@ -11,9 +11,10 @@ const TAB_ICONS = {
 
 export default function FloatingTabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
+  const bottom = Math.round((insets.bottom + 12) * 0.3);
 
   return (
-    <View style={[styles.wrapper, { bottom: insets.bottom + 12 }]}>
+    <View style={[styles.wrapper, { bottom }]}>
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
