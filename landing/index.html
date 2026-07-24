@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Master — Visual budgeting for iOS</title>
+  <meta name="description" content="Budget Master is a React Native budgeting app with animated cash stacks, on-track progress tracking, multi-budget support, and cloud sync." />
+  <meta property="og:title" content="Budget Master" />
+  <meta property="og:description" content="See your budget at a glance. Track pacing, simulate bank charges, and stay on track." />
+  <meta property="og:image" content="/assets/home-screen.png" />
+  <meta name="theme-color" content="#1a6fd4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">Budget Master</a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#architecture">Architecture</a>
+        <a href="https://github.com/asanmiguel12/BudgetMaster" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="https://github.com/asanmiguel12/BudgetMaster" target="_blank" rel="noopener noreferrer">View Code</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">React Native · Expo · Node.js</p>
+          <h1>Turn your budget into something you can <em>see</em>.</h1>
+          <p class="lead">
+            Budget Master combines a visual cash-stack dashboard, on-track progress scoring,
+            and animated bank notifications — so you always know where you stand in the period.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="https://github.com/asanmiguel12/BudgetMaster" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+            <a class="btn btn-secondary" href="#demo">Watch Demo</a>
+          </div>
+          <div class="hero-stats">
+            <div><strong>4</strong><span>Tab screens</span></div>
+            <div><strong>Multi</strong><span>Budget carousel</span></div>
+            <div><strong>JWT</strong><span>Cloud sync</span></div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="phone-frame">
+            <img src="assets/home-screen.png" alt="Budget Master home screen showing overall budget, on-track progress, and timeframe slider" width="320" height="693" />
+          </div>
+          <img class="hero-stack" src="assets/money-stack.png" alt="" aria-hidden="true" />
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section features">
+      <div class="container">
+        <div class="section-head">
+          <h2>What it does</h2>
+          <p>Built for clarity — abstract numbers become visual feedback you can act on immediately.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-icon">📊</span>
+            <h3>Dual dashboard cards</h3>
+            <p>Overall budget + remaining on the left; on-track progress % on the right with green, gold, or red status.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">💵</span>
+            <h3>Animated cash stacks</h3>
+            <p>3D bill artwork shakes and flies off when a charge hits — the closest denomination stack animates away.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📅</span>
+            <h3>Timeframe preview slider</h3>
+            <p>Scrub through days in your budget period to preview how your on-track score would look without changing real data.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🔄</span>
+            <h3>Multi-budget carousel</h3>
+            <p>Swipe between named budgets — Food, Transport, General — each with its own timeframe and transactions.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">💳</span>
+            <h3>Bank notification demo</h3>
+            <p>Simulate incoming Coffee Corner charges ($1–$40) with a full deduction animation and recent activity updates.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">☁️</span>
+            <h3>Sign in &amp; sync</h3>
+            <p>JWT auth with Express API — create an account, sign in, and sync budgets across devices.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section on-track">
+      <div class="container on-track-grid">
+        <div>
+          <h2>On-track progress, explained</h2>
+          <p class="lead-sm">Answers one question: <em>“Am I spending at a sustainable pace for the time left?”</em></p>
+          <pre class="formula"><code>expectedRemaining = budget × (daysRemaining / totalDays)
+onTrackProgress   = (remaining / expectedRemaining) × 100</code></pre>
+          <ul class="status-list">
+            <li><span class="badge badge-green">≥ 75%</span> Budget Master!</li>
+            <li><span class="badge badge-gold">50–74%</span> Still On Track!</li>
+            <li><span class="badge badge-red">&lt; 50%</span> Budget Better!</li>
+          </ul>
+        </div>
+        <div class="screens-grid">
+          <img src="assets/home-screen.png" alt="Budget Master dashboard screenshot" class="screenshot" />
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="section demo">
+      <div class="container">
+        <div class="section-head">
+          <h2>Demo</h2>
+          <p>See the simulate-bank-notification flow and cash-stack animation in action.</p>
+        </div>
+        <div class="demo-card">
+          <!-- Replace the src below with your YouTube, Loom, or Cloudinary video embed URL -->
+          <div class="video-placeholder" id="video-placeholder">
+            <div class="play-ring">▶</div>
+            <p><strong>Add your demo video</strong></p>
+            <p class="muted">Record a 30–60s screen capture, upload to YouTube or Loom, then paste the embed URL in <code>index.html</code>.</p>
+            <a class="btn btn-secondary btn-sm" href="assets/home-screen.png" target="_blank">View screenshot</a>
+          </div>
+          <!-- Example embed (uncomment and replace VIDEO_ID):
+          <div class="video-embed">
+            <iframe
+              src="https://www.youtube.com/embed/VIDEO_ID"
+              title="Budget Master demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </div>
+          -->
+        </div>
+        <ol class="demo-steps">
+          <li>Tap <strong>Simulate Bank Notification</strong> on Home</li>
+          <li>Cash stack shakes; a bill flies off</li>
+          <li>Budget cards, on-track %, and Recent Activity update</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="architecture" class="section architecture">
+      <div class="container">
+        <div class="section-head">
+          <h2>Architecture</h2>
+          <p>Local-first mobile app with optional cloud sync via REST API.</p>
+        </div>
+        <div class="arch-diagram">
+          <div class="arch-col">
+            <h4>Mobile (Expo)</h4>
+            <ul>
+              <li>React Native 0.85 + React 19</li>
+              <li>React Navigation 7</li>
+              <li>BudgetContext + AuthContext</li>
+              <li>AsyncStorage (offline cache)</li>
+            </ul>
+          </div>
+          <div class="arch-arrow">↔</div>
+          <div class="arch-col">
+            <h4>API (Node.js)</h4>
+            <ul>
+              <li>Express REST server</li>
+              <li>JWT authentication</li>
+              <li>Per-user budget sync</li>
+              <li>JSON file persistence</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tech-tags">
+          <span>Expo SDK 56</span>
+          <span>React Native</span>
+          <span>Express</span>
+          <span>JWT</span>
+          <span>AsyncStorage</span>
+          <span>React Navigation</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta">
+      <div class="container cta-inner">
+        <div>
+          <h2>Explore the project</h2>
+          <p>Clone the repo, run on iOS Simulator or Expo Go, and try the bank notification demo.</p>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://github.com/asanmiguel12/BudgetMaster" target="_blank" rel="noopener noreferrer">GitHub →</a>
+          <span class="app-store-soon">App Store — coming soon</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 Budget Master · Built by Adrian</p>
+      <div class="footer-links">
+        <a href="https://github.com/asanmiguel12/BudgetMaster" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
