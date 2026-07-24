@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import {
@@ -57,6 +58,9 @@ export default function BudgetSetupModal({ visible, onComplete, onClose, title }
   const isNameValid = isValidBudgetName(budgetName);
   const timeframe = { unit, duration: Math.round(duration) };
   const unitMax = TIME_UNITS[unit].max;
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.min(screenWidth - 48, 420);
+  const formCardHeight = Math.min(screenHeight * 0.78, 680);
 
   const handleUnitChange = (newUnit) => {
     setUnit(newUnit);
@@ -92,18 +96,118 @@ export default function BudgetSetupModal({ visible, onComplete, onClose, title }
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ width: cardWidth }}
         >
-          <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {step === 'name' ? (
-                <>
-                  <Text style={styles.title}>{title ? 'Name New Budget' : 'Name your budget'}</Text>
-                  <Text style={styles.subtitle}>
-                    Pick a category or enter a custom name. This is required.
-                  </Text>
+          <Pressable
+            style={[
+              styles.card,
+              { width: cardWidth, height: formCardHeight, paddingVertical: 24 },
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.stepLayout}>
+              <ScrollView
+                style={styles.stepScroll}
+                contentContainerStyle={styles.stepScrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+              >
+                {step === 'name' ? (
+                  <>
+                    <Text style={styles.title}>{title ? 'Name New Budget' : 'Name your budget'}</Text>
+                    <Text style={styles.subtitle}>
+                      Pick a category or enter a custom name. This is required.
+                    </Text>
+                    <BudgetNamePicker value={budgetName} onChange={setBudgetName} />
+                  </>
+                ) : step === 'timeframe' ? (
+                  <>
+                    <TouchableOpacity style={styles.backBtn} onPress={() => setStep('name')}>
+                      <Text style={styles.backText}>‹ Back</Text>
+                    </TouchableOpacity>
 
-                  <BudgetNamePicker value={budgetName} onChange={setBudgetName} />
+                    <Text style={styles.title}>{title || 'Choose your budget timeframe'}</Text>
+                    <Text style={styles.subtitle}>
+                      Pick a unit and slide to set the duration.
+                    </Text>
 
+                    <View style={styles.dropdownContainer}>
+                      <TouchableOpacity
+                        style={styles.dropdownBtn}
+                        onPress={() => setDropdownOpen((open) => !open)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownBtnText}>{TIME_UNITS[unit].label}</Text>
+                        <Text style={styles.dropdownChevron}>{dropdownOpen ? '▲' : '▼'}</Text>
+                      </TouchableOpacity>
+
+                      {dropdownOpen && (
+                        <View style={styles.dropdownMenu}>
+                          {UNIT_OPTIONS.map(({ id, label }) => (
+                            <TouchableOpacity
+                              key={id}
+                              style={[styles.dropdownItem, unit === id && styles.dropdownItemSelected]}
+                              onPress={() => handleUnitChange(id)}
+                            >
+                              <Text style={[styles.dropdownItemText, unit === id && styles.dropdownItemTextSelected]}>
+                                {label}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+
+                    <Text style={styles.durationValue}>{formatTimeframe(timeframe)}</Text>
+
+                    <View style={styles.sliderRow}>
+                      <Text style={styles.sliderBound}>1</Text>
+                      <Slider
+                        style={styles.slider}
+                        minimumValue={1}
+                        maximumValue={unitMax}
+                        step={1}
+                        value={duration}
+                        onValueChange={setDuration}
+                        minimumTrackTintColor="#1a6fd4"
+                        maximumTrackTintColor="#ddd"
+                        thumbTintColor="#1a6fd4"
+                      />
+                      <Text style={styles.sliderBound}>{unitMax}</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.backBtn} onPress={() => setStep('timeframe')}>
+                      <Text style={styles.backText}>‹ Back</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.title}>{title ? 'Set budget amount' : 'Set your budget'}</Text>
+                    <Text style={styles.subtitle}>
+                      How much for {budgetName} over the next {formatTimeframePeriod(timeframe)}?
+                    </Text>
+
+                    <View style={styles.inputRow}>
+                      <Text style={styles.dollarSign}>$</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={input}
+                        onChangeText={setInput}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                        placeholderTextColor="#bbb"
+                        autoFocus
+                        returnKeyType="done"
+                        onSubmitEditing={handleSubmit}
+                      />
+                    </View>
+                  </>
+                )}
+              </ScrollView>
+
+              <View style={styles.stepFooter}>
+                {step === 'name' ? (
                   <TouchableOpacity
                     style={[styles.button, !isNameValid && styles.buttonDisabled]}
                     onPress={() => setStep('timeframe')}
@@ -111,93 +215,11 @@ export default function BudgetSetupModal({ visible, onComplete, onClose, title }
                   >
                     <Text style={styles.buttonText}>Continue</Text>
                   </TouchableOpacity>
-                </>
-              ) : step === 'timeframe' ? (
-                <>
-                  <TouchableOpacity style={styles.backBtn} onPress={() => setStep('name')}>
-                    <Text style={styles.backText}>‹ Back</Text>
-                  </TouchableOpacity>
-
-                  <Text style={styles.title}>{title || 'Choose your budget timeframe'}</Text>
-                  <Text style={styles.subtitle}>
-                    Pick a unit and slide to set the duration.
-                  </Text>
-
-                  <View style={styles.dropdownContainer}>
-                    <TouchableOpacity
-                      style={styles.dropdownBtn}
-                      onPress={() => setDropdownOpen((open) => !open)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.dropdownBtnText}>{TIME_UNITS[unit].label}</Text>
-                      <Text style={styles.dropdownChevron}>{dropdownOpen ? '▲' : '▼'}</Text>
-                    </TouchableOpacity>
-
-                    {dropdownOpen && (
-                      <View style={styles.dropdownMenu}>
-                        {UNIT_OPTIONS.map(({ id, label }) => (
-                          <TouchableOpacity
-                            key={id}
-                            style={[styles.dropdownItem, unit === id && styles.dropdownItemSelected]}
-                            onPress={() => handleUnitChange(id)}
-                          >
-                            <Text style={[styles.dropdownItemText, unit === id && styles.dropdownItemTextSelected]}>
-                              {label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-
-                  <Text style={styles.durationValue}>{formatTimeframe(timeframe)}</Text>
-
-                  <View style={styles.sliderRow}>
-                    <Text style={styles.sliderBound}>1</Text>
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={1}
-                      maximumValue={unitMax}
-                      step={1}
-                      value={duration}
-                      onValueChange={setDuration}
-                      minimumTrackTintColor="#1a6fd4"
-                      maximumTrackTintColor="#ddd"
-                      thumbTintColor="#1a6fd4"
-                    />
-                    <Text style={styles.sliderBound}>{unitMax}</Text>
-                  </View>
-
+                ) : step === 'timeframe' ? (
                   <TouchableOpacity style={styles.button} onPress={() => setStep('budget')}>
                     <Text style={styles.buttonText}>Continue</Text>
                   </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <TouchableOpacity style={styles.backBtn} onPress={() => setStep('timeframe')}>
-                    <Text style={styles.backText}>‹ Back</Text>
-                  </TouchableOpacity>
-
-                  <Text style={styles.title}>{title ? 'Set budget amount' : 'Set your budget'}</Text>
-                  <Text style={styles.subtitle}>
-                    How much for {budgetName} over the next {formatTimeframePeriod(timeframe)}?
-                  </Text>
-
-                  <View style={styles.inputRow}>
-                    <Text style={styles.dollarSign}>$</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={input}
-                      onChangeText={setInput}
-                      keyboardType="decimal-pad"
-                      placeholder="0.00"
-                      placeholderTextColor="#bbb"
-                      autoFocus
-                      returnKeyType="done"
-                      onSubmitEditing={handleSubmit}
-                    />
-                  </View>
-
+                ) : (
                   <TouchableOpacity
                     style={[styles.button, !isValidBudget && styles.buttonDisabled]}
                     onPress={handleSubmit}
@@ -205,9 +227,9 @@ export default function BudgetSetupModal({ visible, onComplete, onClose, title }
                   >
                     <Text style={styles.buttonText}>{onComplete ? 'Add Budget' : 'Get Started'}</Text>
                   </TouchableOpacity>
-                </>
-              )}
-            </ScrollView>
+                )}
+              </View>
+            </View>
           </Pressable>
         </KeyboardAvoidingView>
       </Pressable>
@@ -230,6 +252,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 28,
     alignItems: 'center',
+  },
+  stepLayout: {
+    flex: 1,
+    width: '100%',
+  },
+  stepScroll: {
+    flex: 1,
+    width: '100%',
+  },
+  stepScrollContent: {
+    paddingBottom: 8,
+  },
+  stepFooter: {
+    width: '100%',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#eee',
   },
   backBtn: {
     alignSelf: 'flex-start',
@@ -323,7 +362,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 28,
+    marginBottom: 12,
   },
   slider: {
     flex: 1,
@@ -342,7 +381,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#2a8a2a',
     paddingBottom: 8,
-    marginBottom: 32,
+    marginBottom: 12,
     width: '100%',
     justifyContent: 'center',
   },
@@ -367,7 +406,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 48,
     width: '100%',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 0,
   },
   buttonDisabled: {
     opacity: 0.4,
